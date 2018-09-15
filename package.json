@@ -1,0 +1,27 @@
+{
+  "name": "sequence_diagram",
+  "version": "0.0.1",
+  "description": "Sequence diagram parser and generator",
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tonygoold/sequence_diagram.git"
+  },
+  "keywords": [
+    "uml",
+    "sequence",
+    "diagram"
+  ],
+  "author": "R. Tony Goold",
+  "license": "BSD-2-Clause",
+  "bugs": {
+    "url": "https://github.com/tonygoold/sequence_diagram/issues"
+  },
+  "homepage": "https://github.com/tonygoold/sequence_diagram/",
+  "devDependencies": {
+    "mocha": "^5.2.0"
+  }
+}
