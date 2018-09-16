@@ -40,6 +40,7 @@ function tokenize(str, donefn, testfn) {
     tk.on('token', token => tokens.push(token));
     tk.on('end', () => {
         try {
+            assert.ok(tokens.length > 0, 'No tokens found');
             testfn(tokens);
             donefn();
         } catch (err) {
@@ -65,7 +66,6 @@ describe('Read tokens', () => {
                     return;
                 }
                 tokenize(c[2], done, (tokens) => {
-                    assert.ok(tokens.length > 0, 'No tokens found');
                     assert.strictEqual(tokens[0].type, Token.Type.IDENTIFIER);
                     assert.strictEqual(tokens[0].value, c[2]);
                 });
@@ -91,32 +91,89 @@ describe('Read tokens', () => {
         for (const keyword of keywords) {
             it(keyword, (done) => {
                 tokenize(keyword, done, (tokens) => {
-                    assert.ok(tokens.length > 0, 'No tokens found');
-                    assert.strictEqual(tokens[0].type, Token.Type.KEYWORD);
+                    assert.ok(tokens[0].isKeyword);
                     assert.strictEqual(tokens[0].value, keyword);
                 });
             });
         }
     });
-    describe('operators', () => {
-        const operators = [
-            '->',
-            '-->',
-            '->>',
-            '-->>',
-            '<->',
-            '<-->',
-            '+',
-            '-',
-            '*',
-            ':',
+    describe('arrow heads', () => {
+        it('closed', (done) => {
+            tokenize('>', done, (tokens) => {
+                assert.strictEqual(tokens[0].type, Token.Type.OP_ARROW_RIGHT);
+            });
+        });
+        it('open', (done) => {
+            tokenize('>>', done, (tokens) => {
+                assert.strictEqual(tokens[0].type, Token.Type.OP_ARROW_RIGHT_OPEN);
+            });
+        });
+    });
+    describe('arrow body', () => {
+        it('normal', (done) => {
+            tokenize('-', done, (tokens) => {
+                assert.strictEqual(tokens[0].type, Token.Type.OP_ARROW_BODY);
+            });
+        });
+        it('dotted', (done) => {
+            tokenize('--', done, (tokens) => {
+                assert.strictEqual(tokens[0].type, Token.Type.OP_ARROW_BODY_DOTTED);
+            });
+        });
+    });
+    describe('arrow tails', () => {
+        it('closed', (done) => {
+            tokenize('<', done, (tokens) => {
+                assert.strictEqual(tokens[0].type, Token.Type.OP_ARROW_LEFT);
+            });
+        });
+        it('open', (done) => {
+            tokenize('<<', done, (tokens) => {
+                assert.strictEqual(tokens[0].type, Token.Type.OP_ARROW_LEFT_OPEN);
+            });
+        });
+    });
+    describe('other operators', () => {
+        const cases = [
+            [ 'comma', ',', Token.Type.COMMA ],
+            [ 'colon', ':', Token.Type.COLON ],
+            [ 'create', '*', Token.Type.OP_CREATE ],
         ];
-        for (const operator of operators) {
-            it(operator, (done) => {
-                tokenize(operator, done, (tokens) => {
-                    assert.ok(tokens.length > 0, 'No tokens found');
-                    assert.strictEqual(tokens[0].type, Token.Type.OPERATOR);
-                    assert.strictEqual(tokens[0].value, operator);
+        for (const c of cases) {
+            it(c[0], (done) => {
+                tokenize(c[1], done, (tokens) => {
+                    assert.strictEqual(tokens[0].type, c[2]);
+                });
+            });
+        }
+    });
+    describe('activators', () => {
+        // Activators must be preceded by an arrow head
+        const cases = [
+            [ 'activate', '>+', Token.Type.OP_ACTIVATE ],
+            [ 'deactivate', '>-', Token.Type.OP_DEACTIVATE ],
+        ];
+        for (const c of cases) {
+            it(c[0], (done) => {
+                tokenize(c[1], done, (tokens) => {
+                    const last = tokens[tokens.length - 1];
+                    assert.strictEqual(last.type, c[2]);
+                });
+            });
+        }
+    });
+    describe('inline text', () => {
+        const lines = [
+            [ 'Basic text', 'A -> B: This is some text', 'This is some text' ],
+            [ 'Whitespace stripping', '  :  Another test', 'Another test' ],
+            [ 'Keywords in text', 'test: loop note as opt right', 'loop note as opt right' ],
+        ];
+        for (const line of lines) {
+            it(line[0], (done) => {
+                tokenize(line[1], done, (tokens) => {
+                    const token = tokens[tokens.length - 1];
+                    assert.strictEqual(token.type, Token.Type.TEXT);
+                    assert.strictEqual(token.value, line[2]);
                 });
             });
         }
