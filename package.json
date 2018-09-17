@@ -16,7 +16,7 @@
     "diagram"
   ],
   "author": "R. Tony Goold",
-  "license": "BSD-2-Clause",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/tonygoold/sequence_diagram/issues"
   },
