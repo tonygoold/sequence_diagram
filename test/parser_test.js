@@ -93,3 +93,95 @@ describe('Parser signal arrows', () => {
         });
     }
 });
+describe('Parser conditionals', () => {
+    it('opt', () => {
+        const tokens = [
+            new Token(Token.Type.KW_OPT),
+            new Token(Token.Type.KW_END),
+        ];
+        const parser = new Parser(tokens);
+        const statements = parser.parse().statements;
+        assert.ok(statements.length > 0, 'No statements parsed');
+        const block = statements[0];
+        assert.strictEqual(block.label, 'opt');
+        assert.strictEqual(block.condition, null);
+        assert.strictEqual(block.statements.length, 0);
+    });
+    it('opt with condition', () => {
+        const condition = 'the condition';
+        const tokens = [
+            new Token(Token.Type.KW_OPT),
+            new Token(Token.Type.TEXT, condition),
+            new Token(Token.Type.KW_END),
+        ];
+        const parser = new Parser(tokens);
+        const statements = parser.parse().statements;
+        assert.ok(statements.length > 0, 'No statements parsed');
+        const block = statements[0];
+        assert.strictEqual(block.label, 'opt');
+        assert.strictEqual(block.condition, condition);
+        assert.strictEqual(block.statements.length, 0);
+    });
+    it('opt body', () => {
+        const signal = makesig('A', 'B', false, 'closed', null);
+        const tokens = [
+            new Token(Token.Type.KW_OPT),
+            new Token(Token.Type.IDENTIFIER, signal.from),
+            new Token(Token.Type.OP_ARROW_BODY),
+            new Token(Token.Type.OP_ARROW_RIGHT),
+            new Token(Token.Type.IDENTIFIER, signal.to),
+            new Token(Token.Type.KW_END),
+        ];
+        const parser = new Parser(tokens);
+        const statements = parser.parse().statements;
+        assert.ok(statements.length > 0, 'No statements parsed');
+        const block = statements[0];
+        assert.deepEqual(block.statements, [ signal ]);
+    });
+    it('alt', () => {
+        const tokens = [
+            new Token(Token.Type.KW_ALT),
+            new Token(Token.Type.KW_END),
+        ];
+        const parser = new Parser(tokens);
+        const statements = parser.parse().statements;
+        assert.ok(statements.length > 0, 'No statements parsed');
+        const altBlock = statements[0];
+        assert.strictEqual(altBlock.conditionals.length, 1);
+        const block = altBlock.conditionals[0];
+        assert.strictEqual(block.label, 'alt');
+        assert.strictEqual(block.statements.length, 0);
+    });
+    it('alt with condition', () => {
+        const condition = 'the condition';
+        const tokens = [
+            new Token(Token.Type.KW_ALT),
+            new Token(Token.Type.TEXT, condition),
+            new Token(Token.Type.KW_END),
+        ];
+        const parser = new Parser(tokens);
+        const statements = parser.parse().statements;
+        assert.ok(statements.length > 0, 'No statements parsed');
+        const altBlock = statements[0];
+        assert.strictEqual(altBlock.conditionals.length, 1);
+        const block = altBlock.conditionals[0];
+        assert.strictEqual(block.label, 'alt');
+        assert.strictEqual(block.condition, condition);
+        assert.strictEqual(block.statements.length, 0);
+    });
+    it('alt-else', () => {
+        const tokens = [
+            new Token(Token.Type.KW_ALT),
+            new Token(Token.Type.KW_ELSE),
+            new Token(Token.Type.KW_END),
+        ];
+        const parser = new Parser(tokens);
+        const statements = parser.parse().statements;
+        assert.ok(statements.length > 0, 'No statements parsed');
+        const altBlock = statements[0];
+        assert.strictEqual(altBlock.conditionals.length, 2);
+        const elseBlock = altBlock.conditionals[1];
+        assert.strictEqual(elseBlock.label, 'else');
+        assert.strictEqual(elseBlock.statements.length, 0);
+    });
+});
