@@ -93,6 +93,50 @@ describe('Parser signal arrows', () => {
         });
     }
 });
+describe('Parser signal messages', () => {
+    it('signal with message', () => {
+        const pa = 'participant A';
+        const pb = 'participant B';
+        const tokens = [
+            new Token(Token.Type.IDENTIFIER, pa),
+            new Token(Token.Type.OP_ARROW_BODY),
+            new Token(Token.Type.OP_ARROW_RIGHT),
+            new Token(Token.Type.IDENTIFIER, pb),
+            new Token(Token.Type.COLON),
+            new Token(Token.Type.TEXT, 'Message'),
+        ];
+        const parser = new Parser(tokens);
+        const statements = parser.parse().statements;
+        assert.ok(statements.length > 0, 'No statements parsed');
+        const signal = statements[0];
+        assert.strictEqual(signal.from, pa);
+        assert.strictEqual(signal.to, pb);
+        assert.strictEqual(signal.message, 'Message');
+    });
+});
+describe('Parser sequences', () => {
+    it('multiple statements', () => {
+        const pa = 'participant A';
+        const pb = 'participant B';
+        const tokens = [
+            new Token(Token.Type.IDENTIFIER, pa),
+            new Token(Token.Type.OP_ARROW_BODY),
+            new Token(Token.Type.OP_ARROW_RIGHT),
+            new Token(Token.Type.IDENTIFIER, pb),
+            new Token(Token.Type.COLON),
+            new Token(Token.Type.TEXT, 'Message from A to B'),
+            new Token(Token.Type.IDENTIFIER, pb),
+            new Token(Token.Type.OP_ARROW_BODY_DOTTED),
+            new Token(Token.Type.OP_ARROW_RIGHT),
+            new Token(Token.Type.IDENTIFIER, pa),
+            new Token(Token.Type.COLON),
+            new Token(Token.Type.TEXT, 'Return from B to A'),
+        ];
+        const parser = new Parser(tokens);
+        const statements = parser.parse().statements;
+        assert.strictEqual(statements.length, 2);
+    });
+});
 describe('Parser conditionals', () => {
     it('opt', () => {
         const tokens = [
