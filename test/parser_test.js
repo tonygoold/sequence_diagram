@@ -114,6 +114,35 @@ describe('Parser signal messages', () => {
         assert.strictEqual(signal.message, 'Message');
     });
 });
+describe('Parser signal activations', () => {
+    const pa = 'participant A';
+    const pb = 'participant B';
+    const cases = [
+        [ 'activating signal', Token.Type.OP_ACTIVATE, true, false ],
+        [ 'deactivating signal', Token.Type.OP_DEACTIVATE, false, true ],
+        [ 'non-activating signal', null, false, false ],
+    ];
+    for (const c of cases) {
+        it(c[0], () => {
+            var tokens = [
+                new Token(Token.Type.IDENTIFIER, pa),
+                new Token(Token.Type.OP_ARROW_BODY),
+                new Token(Token.Type.OP_ARROW_RIGHT),
+            ];
+            if (c[1]) {
+                tokens.push(new Token(c[1]));
+            }
+            tokens.push(new Token(Token.Type.IDENTIFIER, pb));
+
+            const parser = new Parser(tokens);
+            const statements = parser.parse().statements;
+            assert.ok(statements.length > 0, 'No statements parsed');
+            const signal = statements[0];
+            assert.strictEqual(signal.activating, c[2]);
+            assert.strictEqual(signal.deactivating, c[3]);
+        });
+    }
+})
 describe('Parser sequences', () => {
     it('multiple statements', () => {
         const pa = 'participant A';
